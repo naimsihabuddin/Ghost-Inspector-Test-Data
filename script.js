@@ -1,5 +1,5 @@
 const MY_API_KEY = "<placeholder>"; // PUT YOUR GI API KEY HERE
-const SUITE_ID = "<placeholder>"; // PUT SUITE ID HERE
+const SUITE_ID = "<placeholder>>"; // PUT SUITE ID HERE
 
 const getTestIds = async (api, suite_id) => {
   const url = `https://api.ghostinspector.com/v1/suites/${suite_id}/tests/?apiKey=${api}`;
@@ -83,8 +83,29 @@ const generateTestNameHeading = (table, testName, testURL) => {
   row.appendChild(a);
 };
 
+const getAllVariables = (testData) => {
+  let variables = [];
+  testData.forEach((tData) => {
+    variables.push(tData.variableName);
+  });
+  return variables;
+};
+
 getData().then((data) => {
   const table = document.querySelector("table");
+  console.log(data);
+
+  let _variables = [];
+  data.forEach((test) => {
+    _variables = [...getAllVariables(test.testData), ..._variables];
+  });
+
+  const uniqueVariables = [...new Set(_variables)];
+
+  console.log(uniqueVariables);
+
+  
+
   data.forEach((test) => {
     generateTestNameHeading(table, test.testName, test.testURL);
     generateTable(table, test.testData);
