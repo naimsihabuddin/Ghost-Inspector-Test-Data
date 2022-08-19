@@ -41,7 +41,7 @@ const getTestData = async (api, test_id) => {
 const getData = async () => {
   const [suiteName, testIds] = await getTestIds(MY_API_KEY, SUITE_ID);
 
-  document.querySelector("h2").innerHTML = suiteName;
+  document.querySelector("h2").innerHTML = `🍬 ${suiteName}`;
 
   const results = testIds.map((id) => {
     const response = getTestData(MY_API_KEY, id);
@@ -133,19 +133,26 @@ const resolveDuplicateVariables = ({ testData }) => {
   return resolvedVariables;
 };
 
-getData().then((data) => {
-  const defaultVariables = prepareEmptyVariables(data);
-  const refinedData = data.map((test) => {
-    return {
-      ...getTestIdentifier(test),
-      ...defaultVariables,
-      ...convertTestDataArrToObj(test),
-      ...resolveDuplicateVariables(test),
-    };
-  });
+getData()
+  .then((data) => {
+    const defaultVariables = prepareEmptyVariables(data);
+    const refinedData = data.map((test) => {
+      return {
+        ...getTestIdentifier(test),
+        ...defaultVariables,
+        ...convertTestDataArrToObj(test),
+        ...resolveDuplicateVariables(test),
+      };
+    });
 
-  const table = document.querySelector("table");
-  const header = Object.keys(refinedData[0]);
-  generateTable(table, refinedData);
-  generateTableHead(table, header);
-});
+    const table = document.querySelector("table");
+    const header = Object.keys(refinedData[0]);
+    generateTable(table, refinedData);
+    generateTableHead(table, header);
+  })
+  .catch((err) => {
+    document.querySelector("h2").innerHTML = err;
+    document.querySelector("p").innerHTML =
+      "Please make sure that valid API key and Suite ID have been updated in script.js 😁";
+    console.log(err);
+  });
