@@ -1,5 +1,5 @@
 const MY_API_KEY = "<placeholder>"; // PUT YOUR GI API KEY HERE
-const SUITE_ID = "<placeholder>>"; // PUT SUITE ID HERE
+const SUITE_ID = "<placeholder>"; // PUT SUITE ID HERE
 
 const getTestIds = async (api, suite_id) => {
   const url = `https://api.ghostinspector.com/v1/suites/${suite_id}/tests/?apiKey=${api}`;
@@ -32,7 +32,6 @@ const getTestData = async (api, test_id) => {
   let testDetails = {
     testName: testName,
     testData: testData,
-    // testID: test_id,
     testURL: `https://app.ghostinspector.com/tests/${test_id}`,
   };
 
@@ -83,36 +82,70 @@ const generateTestNameHeading = (table, testName, testURL) => {
   row.appendChild(a);
 };
 
-const getAllVariables = (testData) => {
-  let variables = [];
-  testData.forEach((tData) => {
-    variables.push(tData.variableName);
+const prepareEmptyVariables = (data) => {
+  const allVariablesAllTests = data
+    .reduce((testAccumulator, { testData }) => {
+      return [...testAccumulator, ...testData];
+    }, [])
+    .map(({ variableName }) => {
+      return variableName;
+    });
+  const emptyVariables = [...new Set(allVariablesAllTests)].reduce(
+    (accumulator, value) => {
+      return { ...accumulator, [value]: "" };
+    },
+    {}
+  );
+  return emptyVariables;
+};
+
+const getTestIdentifier = ({ testName, testURL }) => {
+  return { testName, testURL };
+};
+
+const convertTestDataArrToObj = ({ testData }) => {
+  let obj = {};
+  testData.forEach((dt) => {
+    obj = { ...obj, [dt.variableName]: dt.value };
   });
-  return variables;
+  return obj;
+};
+
+const resolveDuplicateVariables = ({ testData }) => {
+  const variableNames = testData.map((dt) => {
+    return dt.variableName;
+  });
+  const duplicateVariables = variableNames.filter(
+    (variable, index) => index !== variableNames.indexOf(variable)
+  );
+  const newFormVariables = duplicateVariables.map((variable) => {
+    const consolidatedValues = testData
+      .filter((dt) => variable == dt.variableName)
+      .map((dt) => {
+        return dt.value;
+      })
+      .join(", ");
+    return { [variable]: consolidatedValues };
+  });
+  const resolvedVariables = newFormVariables.reduce((accumulator, variable) => {
+    return { ...accumulator, ...variable };
+  }, {});
+  return resolvedVariables;
 };
 
 getData().then((data) => {
+  const defaultVariables = prepareEmptyVariables(data);
+  const refinedData = data.map((test) => {
+    return {
+      ...getTestIdentifier(test),
+      ...defaultVariables,
+      ...convertTestDataArrToObj(test),
+      ...resolveDuplicateVariables(test),
+    };
+  });
+
   const table = document.querySelector("table");
-  console.log(data);
-
-  let _variables = [];
-  data.forEach((test) => {
-    _variables = [...getAllVariables(test.testData), ..._variables];
-  });
-
-  const uniqueVariables = [...new Set(_variables)];
-
-  console.log(uniqueVariables);
-
-  
-
-  data.forEach((test) => {
-    generateTestNameHeading(table, test.testName, test.testURL);
-    generateTable(table, test.testData);
-    const row = table.insertRow();
-    const td = document.createElement("td");
-    const text = document.createTextNode("#".repeat(70));
-    td.appendChild(text);
-    row.appendChild(td);
-  });
+  const header = Object.keys(refinedData[0]);
+  generateTable(table, refinedData);
+  generateTableHead(table, header);
 });
