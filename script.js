@@ -41,7 +41,7 @@ const getTestData = async (api, test_id) => {
 const getData = async () => {
   const [suiteName, testIds] = await getTestIds(MY_API_KEY, SUITE_ID);
 
-  document.querySelector("h2").innerHTML = `🍬 ${suiteName}`;
+  document.querySelector("h2").innerHTML = suiteName;
 
   const results = testIds.map((id) => {
     const response = getTestData(MY_API_KEY, id);
