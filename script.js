@@ -55,10 +55,12 @@ const generateTableHead = (table, data) => {
   let thead = table.createTHead();
   let row = thead.insertRow();
   for (let key of data) {
-    let th = document.createElement("th");
-    let text = document.createTextNode(key);
-    th.appendChild(text);
-    row.appendChild(th);
+    if (key !== "testURL") {
+      let th = document.createElement("th");
+      let text = document.createTextNode(key);
+      th.appendChild(text);
+      row.appendChild(th);
+    }
   }
 };
 
@@ -66,9 +68,19 @@ const generateTable = (table, data) => {
   for (let element of data) {
     let row = table.insertRow();
     for (key in element) {
-      let cell = row.insertCell();
-      let text = document.createTextNode(element[key]);
-      cell.appendChild(text);
+      if (key !== "testURL" && key !== "testName") {
+        let cell = row.insertCell();
+        let text = document.createTextNode(element[key]);
+        cell.appendChild(text);
+      }
+      if (key === "testName") {
+        let cell = row.insertCell();
+        const a = document.createElement("a");
+        const text = document.createTextNode(element[key]);
+        a.appendChild(text);
+        a.setAttribute("href", element.testURL);
+        cell.appendChild(a);
+      }
     }
   }
 };
