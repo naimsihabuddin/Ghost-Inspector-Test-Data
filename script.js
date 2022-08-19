@@ -22,7 +22,7 @@ const getTestData = async (api, test_id) => {
 
   const testData = testSteps
     .filter((testStep) => {
-      return testStep.variableName != "";
+      return testStep.variableName != "" && testStep.command == "store";
     })
     .map((item) => {
       const { variableName, value } = item;
