@@ -2,6 +2,10 @@
   font-family: Arial, Helvetica, sans-serif;
 }
 
+.container-main {
+  padding: 1rem;
+}
+
 .content-table {
   border-collapse: collapse;
   margin: 25px 0;
