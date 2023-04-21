@@ -1,6 +1,21 @@
 const MY_API_KEY = "<placeholder>"; // PUT YOUR GI API KEY HERE
 const SUITE_ID = "<placeholder>"; // PUT SUITE ID HERE
 
+const getSuiteData = async (api, suite_id) => {
+  const url = `https://api.ghostinspector.com/v1/suites/${suite_id}/?apiKey=${api}`;
+  const response = await fetch(url);
+  const raw_data = await response.json();
+  const {
+    data: { variables },
+  } = raw_data;
+  const refinedVariables = variables.map(({ name, value }) => ({
+    name,
+    value,
+  }));
+  console.log(refinedVariables);
+  return refinedVariables;
+};
+
 const getTestIds = async (api, suite_id) => {
   const url = `https://api.ghostinspector.com/v1/suites/${suite_id}/tests/?apiKey=${api}`;
   const response = await fetch(url);
@@ -39,6 +54,7 @@ const getTestData = async (api, test_id) => {
 };
 
 const getData = async () => {
+  const suiteVariables = await getSuiteData(MY_API_KEY, SUITE_ID);
   const [suiteName, testIds] = await getTestIds(MY_API_KEY, SUITE_ID);
 
   document.querySelector("h2").innerHTML = suiteName;
@@ -48,10 +64,31 @@ const getData = async () => {
     return response;
   });
 
-  return Promise.all(results);
+  return Promise.all([suiteVariables, ...results]);
 };
 
-const generateTableHead = (table, data) => {
+const generateRegularTable = (table, data) => {
+  const header = table.createTHead();
+  const headerRow = header.insertRow();
+  Object.keys(data[0]).forEach((key) => {
+    const th = document.createElement("th");
+    const text = document.createTextNode(key);
+    th.appendChild(text);
+    headerRow.appendChild(th);
+  });
+
+  const tbody = table.createTBody();
+  data.forEach((obj) => {
+    const row = tbody.insertRow();
+    Object.keys(obj).forEach((key) => {
+      const cell = row.insertCell();
+      const text = document.createTextNode(obj[key]);
+      cell.appendChild(text);
+    });
+  });
+};
+
+const generateTestDataTableHeader = (table, data) => {
   let thead = table.createTHead();
   let row = thead.insertRow();
   for (let key of data) {
@@ -64,7 +101,7 @@ const generateTableHead = (table, data) => {
   }
 };
 
-const generateTable = (table, data) => {
+const generateTestDataTable = (table, data) => {
   for (let element of data) {
     let row = table.insertRow();
     for (key in element) {
@@ -147,8 +184,13 @@ const resolveDuplicateVariables = ({ testData }) => {
 
 getData()
   .then((data) => {
-    const defaultVariables = prepareEmptyVariables(data);
-    const refinedData = data.map((test) => {
+    const suiteRelatedData = data[0];
+    const suiteTable = document.querySelector("table#suite-data-table");
+    generateRegularTable(suiteTable, suiteRelatedData);
+
+    const testRelatedData = data.slice(1);
+    const defaultVariables = prepareEmptyVariables(testRelatedData);
+    const refinedData = testRelatedData.map((test) => {
       return {
         ...getTestIdentifier(test),
         ...defaultVariables,
@@ -157,10 +199,10 @@ getData()
       };
     });
 
-    const table = document.querySelector("table");
+    const table = document.querySelector("table#test-data-table");
     const header = Object.keys(refinedData[0]);
-    generateTable(table, refinedData);
-    generateTableHead(table, header);
+    generateTestDataTable(table, refinedData);
+    generateTestDataTableHeader(table, header);
   })
   .catch((err) => {
     document.querySelector("h2").innerHTML = err;
