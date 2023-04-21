@@ -205,8 +205,11 @@ getData()
     generateTestDataTableHeader(table, header);
   })
   .catch((err) => {
-    document.querySelector("h2").innerHTML = err;
+    const elements = document.querySelectorAll(".no-error");
+    elements.forEach((element) => {
+      element.remove();
+    });
     document.querySelector("p").innerHTML =
       "Please make sure that valid API key and Suite ID have been updated in script.js 😁";
-    console.log(err);
+    console.error(err);
   });
