@@ -12,7 +12,7 @@ const getSuiteData = async (api, suite_id) => {
     name,
     value,
   }));
-  console.log(refinedVariables);
+
   return refinedVariables;
 };
 
