@@ -214,6 +214,11 @@ getData()
     console.error(err);
   });
 
+const sanitiseFilename = (filename) => {
+  const illegalChars = /[\/\?<>\\:\*\|":\s\.]/g;
+  return filename.replace(illegalChars, "_");
+};
+
 const downloadTestDataBtn = document.getElementById(
   "download-test-data-csv-btn"
 );
@@ -233,12 +238,14 @@ downloadTestDataBtn.addEventListener("click", () => {
 
   const csv = data.map((row) => row.join(",")).join("\n");
 
+  const filename = sanitiseFilename(document.querySelector("h2").innerText);
+
   const link = document.createElement("a");
   link.setAttribute(
     "href",
     "data:text/csv;charset=utf-8," + encodeURIComponent(csv)
   );
-  link.setAttribute("download", "test-data.csv");
+  link.setAttribute("download", `${filename}.csv`);
   link.style.display = "none";
   document.body.appendChild(link);
   link.click();
