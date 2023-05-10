@@ -213,3 +213,34 @@ getData()
       "Please make sure that valid API key and Suite ID have been updated in script.js 😁";
     console.error(err);
   });
+
+const downloadTestDataBtn = document.getElementById(
+  "download-test-data-csv-btn"
+);
+
+downloadTestDataBtn.addEventListener("click", () => {
+  const testDataTable = document.getElementById("test-data-table");
+  const rows = Array.from(testDataTable.querySelectorAll("tr"));
+  const data = rows.map((row) =>
+    Array.from(row.querySelectorAll("th, td")).map((cell) => {
+      let text = cell.innerText;
+      if (text.includes(",") || text.includes('"')) {
+        text = `"${text.replace(/"/g, '""')}"`;
+      }
+      return text;
+    })
+  );
+
+  const csv = data.map((row) => row.join(",")).join("\n");
+
+  const link = document.createElement("a");
+  link.setAttribute(
+    "href",
+    "data:text/csv;charset=utf-8," + encodeURIComponent(csv)
+  );
+  link.setAttribute("download", "test-data.csv");
+  link.style.display = "none";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+});
